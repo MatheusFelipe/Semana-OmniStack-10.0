@@ -1,0 +1,52 @@
+form {
+  margin-top: 30px;
+}
+
+form .input-block + .input-block {
+  margin-top: 20px;
+}
+
+form .input-group {
+  display: grid;
+  gap: 20px;
+  grid-template-columns: 1fr 1fr;
+  margin-top: 20px;
+}
+
+form .input-group .input-block {
+  margin-top: 0;
+}
+
+form .input-block label {
+  color: #acacac;
+  display: block;
+  font-size: 14px;
+  font-weight: bold;
+}
+
+form .input-block input {
+  border: 0;
+  border-bottom: 1px solid #eee;
+  color: #666;
+  font-size: 14px;
+  height: 32px;
+  width: 100%;
+}
+
+form button[type=submit] {
+  background: #7d40e7;
+  border: 0;
+  border-radius: 2px;
+  color: #fff;
+  cursor: pointer;
+  font-size: 16px;
+  font-weight: bold;
+  margin-top: 30px;
+  padding: 15px 20px;
+  transition: background 0.5s;
+  width: 100%;
+}
+
+form button[type=submit]:hover {
+  background: #6931ca;
+}
