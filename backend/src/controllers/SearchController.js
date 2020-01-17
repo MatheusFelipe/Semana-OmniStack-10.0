@@ -9,7 +9,7 @@ module.exports = {
 
     Dev.find(
       {
-        techs: { $in: techsArray },
+        techs: { $in: techsArray.map(tech => new RegExp(tech, 'i')) },
         location: { $near: { $geometry: getLocation({ latitude, longitude }), $maxDistance: 10000 } },
       },
       (err, devs) => res.json({ devs })
