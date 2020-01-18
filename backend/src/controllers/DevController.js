@@ -1,5 +1,7 @@
 const axios = require('axios');
+
 const Dev = require('../models/Dev');
+const { findNearConnections, findNearConnectionsByTechs, sendMessage } = require('../websocket');
 const parseStringAsArray = require('../utils/parseStringAsArray');
 const getLocation = require('../utils/getLocation');
 
@@ -9,13 +11,18 @@ module.exports = {
   show: (req, res) => Dev.findOne({ github_username: req.params.github_username }, (err, dev) => res.json({ dev })),
 
   destroy: (req, res) =>
-    Dev.findOneAndDelete({ github_username: req.params.github_username }, { useFindAndModify: false }, (err, resp) =>
-      res.json(resp)
-    ),
+    Dev.findOneAndDelete({ github_username: req.params.github_username }, { useFindAndModify: false }, (err, dev) => {
+      res.json(dev);
+      if (dev) {
+        const [longitude, latitude] = dev.location.coordinates;
+        sendMessage(findNearConnections({ latitude, longitude }), 'remove-dev', dev);
+      }
+    }),
 
   store: async (req, res) => {
     const { github_username, techs, latitude, longitude } = req.body;
 
+    const techsArray = parseStringAsArray(techs);
     let dev = await Dev.findOne({ github_username });
 
     if (!dev) {
@@ -28,9 +35,12 @@ module.exports = {
         name: name || login,
         avatar_url,
         bio,
-        techs: parseStringAsArray(techs),
+        techs: techsArray,
         location: getLocation({ latitude, longitude }),
       });
+
+      const sendSocketMessageTo = findNearConnectionsByTechs({ latitude, longitude }, techsArray);
+      sendMessage(sendSocketMessageTo, 'new-dev', dev);
     }
 
     return res.json({ dev });
