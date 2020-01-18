@@ -5,6 +5,7 @@ import { requestPermissionsAsync, getCurrentPositionAsync } from 'expo-location'
 import { MaterialIcons } from '@expo/vector-icons';
 
 import api from '../services/api';
+import socket from '../services/socket';
 
 const styles = StyleSheet.create({
   map: {
@@ -92,11 +93,31 @@ const Main = ({ navigation }) => {
     });
   }, []);
 
+  useEffect(() => {
+    socket.subscribeToNewDevs(dev => {
+      if (!devs.find(({ github_username }) => github_username === dev.github_username)) setDevs([...devs, dev]);
+    });
+    socket.removeDev(dev => {
+      if (devs.find(({ github_username }) => github_username === dev.github_username))
+        setDevs(devs.filter(({ github_username }) => github_username !== dev.github_username));
+    });
+  }, [devs]);
+
   if (!currentRegion) return null;
+
+  const setupWebSocket = () => {
+    const { latitude, longitude } = currentRegion;
+
+    socket.disconnect();
+    socket.connect({ latitude, longitude, techs });
+  };
 
   const loadDevs = () => {
     const { latitude, longitude } = currentRegion;
-    api.get('/search', { params: { latitude, longitude, techs } }).then(resp => setDevs(resp.data.devs));
+    api.get('/search', { params: { latitude, longitude, techs } }).then(resp => {
+      setDevs(resp.data.devs);
+      setupWebSocket();
+    });
   };
 
   return (
